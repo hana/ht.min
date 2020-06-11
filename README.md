@@ -7,6 +7,9 @@ Max externals.
 ## Acknowledgements
 This package was created using [the Min-DevKit for Max](https://github.com/Cycling74/min-devkit).
 
+## How to Use
+- Download this repository into your `Max 8/Packages` folder (most case it is located in `~/Documents`).
+
 ## List of Externals
 - ht.alarm
     - Outputs a bang at the specified time, runs on the scheduler thread.
