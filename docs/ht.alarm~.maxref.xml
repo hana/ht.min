@@ -35,8 +35,8 @@
 		</method>
 
 		<method name='check'>
-			<digest>Check the alarm time in the local time </digest>
-			<description>Check the alarm time in the local time </description>
+			<digest>Check the alarm time in the local time</digest>
+			<description>Check the alarm time in the local time. </description>
 		</method>
 
 		<method name='bang'>

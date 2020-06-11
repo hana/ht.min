@@ -10,7 +10,7 @@
 		}
 ,
 		"classnamespace" : "box",
-		"rect" : [ 208.0, 122.0, 706.0, 640.0 ],
+		"rect" : [ 208.0, 122.0, 706.0, 686.0 ],
 		"bglocked" : 0,
 		"openinpresentation" : 0,
 		"default_fontsize" : 12.0,
@@ -57,7 +57,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 208.0, 148.0, 706.0, 614.0 ],
+						"rect" : [ 0.0, 26.0, 706.0, 660.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -545,7 +545,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 706.0, 614.0 ],
+						"rect" : [ 0.0, 26.0, 706.0, 660.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -578,11 +578,12 @@
 								"box" : 								{
 									"bubble" : 1,
 									"id" : "obj-25",
+									"linecount" : 2,
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 61.0, 161.0, 388.0, 24.0 ],
-									"text" : "If \"utc\" is true, the incoming time setting is recognized as UTC time."
+									"patching_rect" : [ 61.0, 154.0, 388.0, 37.0 ],
+									"text" : "If \"utc\" is true, the incoming time setting is recognized as UTC time.\nYou'll need to set the alarm time again if you change this attribute."
 								}
 
 							}
@@ -704,7 +705,7 @@
 						}
 ,
 						"classnamespace" : "box",
-						"rect" : [ 0.0, 26.0, 706.0, 614.0 ],
+						"rect" : [ 208.0, 148.0, 706.0, 660.0 ],
 						"bglocked" : 0,
 						"openinpresentation" : 0,
 						"default_fontsize" : 12.0,
@@ -790,7 +791,7 @@
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 246.0, 460.0, 327.0, 24.0 ],
+									"patching_rect" : [ 232.0, 457.0, 327.0, 24.0 ],
 									"text" : "\"check\" outputs current alarm time fron the second outlet"
 								}
 
@@ -823,13 +824,13 @@
 , 							{
 								"box" : 								{
 									"bubble" : 1,
-									"bubblepoint" : 0.1,
+									"bubblepoint" : 0.05,
 									"bubbleside" : 0,
 									"id" : "obj-43",
 									"maxclass" : "comment",
 									"numinlets" : 1,
 									"numoutlets" : 0,
-									"patching_rect" : [ 24.0, 491.0, 172.0, 39.0 ],
+									"patching_rect" : [ 24.0, 486.0, 172.0, 39.0 ],
 									"text" : "Bang when the time has come"
 								}
 
@@ -848,13 +849,13 @@
 							}
 , 							{
 								"box" : 								{
+									"dontreplace" : 1,
 									"id" : "obj-37",
 									"maxclass" : "message",
 									"numinlets" : 2,
 									"numoutlets" : 1,
 									"outlettype" : [ "" ],
-									"patching_rect" : [ 70.0, 461.0, 170.0, 22.0 ],
-									"text" : "2020 6 9 21 14 50"
+									"patching_rect" : [ 56.0, 458.0, 170.0, 22.0 ]
 								}
 
 							}
@@ -974,7 +975,7 @@
 									"numoutlets" : 1,
 									"outlettype" : [ "bang" ],
 									"parameter_enable" : 0,
-									"patching_rect" : [ 24.0, 461.0, 24.0, 24.0 ]
+									"patching_rect" : [ 24.0, 457.0, 24.0, 24.0 ]
 								}
 
 							}
@@ -997,8 +998,8 @@
 									"numinlets" : 1,
 									"numoutlets" : 2,
 									"outlettype" : [ "", "" ],
-									"patching_rect" : [ 24.0, 423.0, 52.0, 22.0 ],
-									"text" : "ht.alarm"
+									"patching_rect" : [ 24.0, 423.0, 59.0, 22.0 ],
+									"text" : "ht.alarm~"
 								}
 
 							}
@@ -1107,7 +1108,7 @@
 , 							{
 								"patchline" : 								{
 									"destination" : [ "obj-37", 1 ],
-									"midpoints" : [ 66.5, 453.0, 230.5, 453.0 ],
+									"midpoints" : [ 73.5, 453.0, 216.5, 453.0 ],
 									"source" : [ "obj-5", 1 ]
 								}
 
@@ -1156,6 +1157,10 @@
 				"bootpath" : "C74:/help/resources",
 				"type" : "TEXT",
 				"implicit" : 1
+			}
+, 			{
+				"name" : "ht.alarm~.mxo",
+				"type" : "iLaX"
 			}
 , 			{
 				"name" : "ht.alarm.mxo",

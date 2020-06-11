@@ -9,6 +9,7 @@
 #include <ctime>
 #include <time.h>
 #include <chrono>
+#include <cmath>
 
 #ifdef _WIN32
 #define timezone _timezone
@@ -41,7 +42,7 @@ public:
     };
     
     // the actual attribute for the message
-    attribute<double> resolution { this, "resolution", 1.0,
+    attribute<double> resolution { this, "resolution", 0.0,
         description {
             "Timer resolution, default 1ms"
         }
@@ -75,8 +76,9 @@ public:
     };
                 
     // set
-    message<> set {this,"set","Set the time",
+    message<threadsafe::yes> set {this,"set","Set the time",
         MIN_FUNCTION {
+            metro.stop();
             std::time_t now = time(nullptr);
             struct tm* localtime = std::localtime(&now);
             struct tm time_tm;
@@ -107,11 +109,16 @@ public:
     timer<> metro { this,
         MIN_FUNCTION {
             std::time_t now = time(nullptr);
-            if( 0 <= difftime(now, wakeup_time))  {
+            const double diff = difftime(now, wakeup_time); // difftime returns double but it does NOT contain ms values
+            if( 0.0 <= diff)  {
                 output.send(symbol("bang"));
-            }   else {
+                metro.stop();
+            } else if (diff < -1.0) {   // more than 1 sec
+                metro.delay((std::abs(diff) - 1.0) * 1000.0);
+            } else {
                 metro.delay(resolution);
             }
+                    
             return {};
         }
     };

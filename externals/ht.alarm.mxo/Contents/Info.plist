@@ -18,11 +18,11 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleLongVersionString</key>
-	<string>ht.alarm HEAD-HASH-NOTFOUND.. - Copyright (c) 1974 Acme Inc</string>
+	<string>ht.alarm .. - Copyright (c) 1974 Acme Inc</string>
 	<key>CFBundlePackageType</key>
 	<string>iLaX</string>
 	<key>CFBundleShortVersionString</key>
-	<string>HEAD-HASH-NOTFOUND..</string>
+	<string>..</string>
 	<key>CFBundleSignature</key>
 	<string>max2</string>
 	<key>CFBundleSupportedPlatforms</key>
@@ -30,7 +30,7 @@
 		<string>MacOSX</string>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>HEAD-HASH-NOTFOUND..</string>
+	<string>..</string>
 	<key>CSResourcesFileMapped</key>
 	<true/>
 	<key>DTCompiler</key>

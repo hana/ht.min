@@ -24,9 +24,10 @@ public:
     MIN_AUTHOR		{"Hananosuke Takimoto"};
     MIN_RELATED		{"ht.alarm, clocker, date, timer"};
 
-    inlet<>  input	{ this, "(bang) post greeting to the max console" };
-    outlet<thread_check::scheduler, thread_action::fifo> output	{ this, "(bang) output the message which is posted to the max console" };
-    outlet<thread_check::main, thread_action::fifo> info_out    { this, "(list) output the current alarm time" };
+    inlet<>  input	{ this, "(set) sets time - h:m:s or yyyy:m:d:h:m:s." };
+//    outlet<thread_check::scheduler, thread_action::fifo> output	{ this, "(bang) output the message which is posted to the max console" };
+    outlet<> output    { this, "(bang) output the message which is posted to the max console" };
+    outlet<thread_check::scheduler, thread_action::fifo> info_out    { this, "(list) output the current alarm time" };
 
     
     ht_alarm_tilde(const atoms& args = {}) {
@@ -41,24 +42,6 @@ public:
         false,
         description {"If true, the set value uses utc, otherwise local time"}
     };
-    
-    
-//    // define an optional argument for setting the message
-//    argument<symbol> greeting_arg { this, "greeting", "Initial value for the greeting attribute.",
-//        MIN_ARGUMENT_FUNCTION {
-//            greeting = arg;
-//        }
-//    };
-//
-//
-//    // the actual attribute for the message
-//    attribute<symbol> greeting { this, "greeting", "hello world",
-//        description {
-//            "Greeting to be posted. "
-//            "The greeting will be posted to the Max console when a bang is received."
-//        }
-//    };
-
 
     // respond to the bang message to do something
     message<> bang { this, "bang", "Update the internal clock in case the system clock changes.",
@@ -85,11 +68,12 @@ public:
     };
     
     // set timer
-    message<> set {
+    message<threadsafe::yes> set {
         this,
         "set",
         "Set the time.",
         MIN_FUNCTION {
+            running = false;
             std::time_t now = time(nullptr);
             struct tm* localtime = std::localtime(&now);
             struct tm time_tm;
@@ -116,22 +100,29 @@ public:
         }
     };
     
+    timer<> metro {this, MIN_FUNCTION{
+        output.send("bang");
+        metro.stop();
+        return {};
+    }};
+    
     void operator()(sample x)   {
         static std::time_t now;
         if(running) {
             now = time(nullptr);
-            if(0 <= difftime(now, wakeup_time)) {
-                output.send("bang");
+            if(0.0 <= difftime(now, wakeup_time)) {
+                metro.delay(0.0);
                 running = false;
             }
         }
-    }
+    };
 
 
 private:
     bool running;
     std::time_t wakeup_time;
-
+    
+    
     int tz_offset;
     
     void updateTimezoneOffset() {
