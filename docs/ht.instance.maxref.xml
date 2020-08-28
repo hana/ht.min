@@ -6,14 +6,14 @@
 
 <c74object name='ht.instance' category='utilities'>
 
-	<digest>Post to the Max Console</digest>
-	<description>Post to the Max Console. </description>
+	<digest>Count the instances of the class</digest>
+	<description>Count the instances of the class. </description>
 
 
 	<!--METADATA-->
 
 	<metadatalist>
-		<metadata name='author'>Cycling '74 </metadata>
+		<metadata name='author'>Hananosuke Takimoto </metadata>
 		<metadata name='tag'>utilities</metadata>
 	</metadatalist>
 
@@ -22,9 +22,9 @@
 
 	<objarglist>
 
-		<objarg name='instance_name' optional='0' type='symbol'>
-			<digest>Instance name </digest>
-			<description>Instance name </description>
+		<objarg name='class_name' optional='0' type='symbol'>
+			<digest>The name of the class the object belongs to</digest>
+			<description>The name of the class the object belongs to. </description>
 		</objarg>
 
 	</objarglist>
@@ -35,8 +35,8 @@
 	<methodlist>
 
 		<method name='bang'>
-			<digest>Post the greeting</digest>
-			<description>Post the greeting. </description>
+			<digest>get the output</digest>
+			<description>get the output. </description>
 		</method>
 
 	</methodlist>
@@ -46,9 +46,9 @@
 
 	<attributelist>
 
-		<attribute name='instance_name' get='1' set='1' type='symbol' size='1' >
-			<digest>Greeting to be posted</digest>
-			<description>Greeting to be posted. The greeting will be posted to the Max console when a bang is received. </description>
+		<attribute name='class_name' get='1' set='1' type='symbol' size='1' >
+			<digest>The name of the class the object belongs to.This value should not be changed through Message box</digest>
+			<description>The name of the class the object belongs to.This value should not be changed through Message box. </description>
 		</attribute>
 
 	</attributelist>
@@ -57,9 +57,7 @@
 	<!--RELATED-->
 
 	<seealsolist>
-		<seealso name='print' />
-		<seealso name='jit.print' />
-		<seealso name='dict.print' />
+		<seealso name='value' />
 	</seealsolist>
 
 

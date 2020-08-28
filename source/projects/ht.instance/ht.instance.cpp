@@ -7,74 +7,70 @@
 #include <map>
 #include <string>
 
+
 using namespace c74::min;
 
 class ht_instance : public object<ht_instance> {
 public:
-    MIN_DESCRIPTION	{"Post to the Max Console."};
+    MIN_DESCRIPTION	{"Count the instances of the class."};
     MIN_TAGS		{"utilities"};
-    MIN_AUTHOR		{"Cycling '74"};
-    MIN_RELATED		{"print, jit.print, dict.print"};
+    MIN_AUTHOR		{"Hananosuke Takimoto"};
+    MIN_RELATED		{"value"};
 
-    inlet<>  input	{ this, "(bang) post greeting to the max console" };
-    outlet<> output_left	{ this, "(int) index of this instance. Starts from 0." };
-    outlet<> output_right    { this, "(int) number of all instances with the same name." };
-    
-    
-    //Constructor
-    ht_instance(const atoms& args = {}) {
-        instance_index = 0;
-        
-        const auto name_str = static_cast<std::string>(instance_name.get());
-        
-        if(instance_counter.find(name_str) == instance_counter.end()) { // the key doesnt exist
-            instance_index = 0;
-            instance_counter[name_str] = 0;
-        } else {
-            instance_index = ++instance_counter[name_str];
-        }
-    };
-    
+    inlet<>  input	{ this, "(bang) output" };
+    outlet<> out_left	{ this, "(int) index of this instance. Starting from 0" };
+    outlet<> out_right    { this, "(anything) total number of the instances belonging to the same class" };
+
     // define an optional argument for setting the message
-    argument<symbol> instance_name_arg { this, "instance_name", "Instance name", true,
+    argument<symbol> class_name_arg { this, "class_name", "The name of the class the object belongs to.", true,
         MIN_ARGUMENT_FUNCTION {
-            instance_name = arg;
+            class_name = arg;
+            metro.delay(0);
         }
     };
-    
-    attribute<symbol> instance_name { this, "instance_name", "hogehoge",
-           description {
-               "Greeting to be posted. "
-               "The greeting will be posted to the Max console when a bang is received."
-           }
-       };
+
+    // the actual attribute for the message
+    attribute<symbol> class_name { this, "class_name", "hogehoge",
+        description {
+            "The name of the class the object belongs to."
+            "This value should not be changed through Message box."
+        }
+    };
+
 
     // respond to the bang message to do something
-    message<> bang { this, "bang", "Post the greeting.",
+    message<> bang { this, "bang", "get the output.",
         MIN_FUNCTION {
-            auto name_str = static_cast<std::string>(instance_name.get());
-            cout << name_str << endl;
-//            cout << instance_counter[name_str] << endl;
-//            cout << ++instance_counter[name_str] << endl;
-            
-//            instance_index = ++instance_counter[name_str];
-            
-//            output_right.send(instance_counter[name_str]);
-            output_right.send(instance_counter[name_str]);
-            output_left.send(instance_index);
+            out_right.send(class_map[class_name_str] + 1);
+            out_left.send(instance_index);
             return {};
         }
     };
-            
     
+    timer<> metro { this,
+        MIN_FUNCTION {
+            class_name_str = static_cast<std::string>(class_name.get());
+            if(class_map.find(class_name_str) == class_map.end()) { // if the key doesnt exist
+                class_map[class_name_str] = 0;
+                instance_index = 0;
+            } else {
+                instance_index = ++class_map[class_name_str]; // increment then apply
+            }
+            return {};
+        }
+    };
+    
+    ~ht_instance() {
+        class_map[class_name_str]--;
+    }
 
-       
 private:
+    std::string class_name_str;
+    static std::map<std::string, int> class_map;
     int instance_index;
-    static std::map<std::string, int> instance_counter;
 };
-
-std::map<std::string, int> ht_instance::instance_counter;
+            
+std::map<std::string, int> ht_instance::class_map;
 
 
 MIN_EXTERNAL(ht_instance);
