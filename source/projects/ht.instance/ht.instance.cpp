@@ -24,30 +24,21 @@ public:
     // define an optional argument for setting the message
     argument<symbol> class_name_arg { this, "class_name", "The name of the class the object belongs to.", true,
         MIN_ARGUMENT_FUNCTION {
-            //class_name = arg;
             class_name_str = static_cast<std::string>(arg);
-            metro.delay(0);
-        }
-    };
-
-    // respond to the bang message to do something
-    message<> bang { this, "bang", "get the output.",
-        MIN_FUNCTION {
-            out_right.send(class_map[class_name_str] + 1);
-            out_left.send(instance_index);
-            return {};
-        }
-    };
-    
-    timer<> metro { this,
-        MIN_FUNCTION {
-            //class_name_str = static_cast<std::string>(class_name.get());
             if(class_map.find(class_name_str) == class_map.end()) { // if the key doesnt exist
                 class_map[class_name_str] = 0;
                 instance_index = 0;
             } else {
                 instance_index = ++class_map[class_name_str]; // increment then apply
             }
+        }
+    };
+    
+    // respond to the bang message to do something
+    message<> bang { this, "bang", "get the output.",
+        MIN_FUNCTION {
+            out_right.send(class_map[class_name_str] + 1);
+            out_left.send(instance_index);
             return {};
         }
     };
