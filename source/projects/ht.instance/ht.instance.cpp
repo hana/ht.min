@@ -24,18 +24,19 @@ public:
     // define an optional argument for setting the message
     argument<symbol> class_name_arg { this, "class_name", "The name of the class the object belongs to.", true,
         MIN_ARGUMENT_FUNCTION {
-            class_name = arg;
+            //class_name = arg;
+            class_name_str = static_cast<std::string>(arg);
             metro.delay(0);
         }
     };
 
     // the actual attribute for the message
-    attribute<symbol> class_name { this, "class_name", "hogehoge",
+    /*attribute<symbol> class_name { this, "class_name", "hogehoge",
         description {
             "The name of the class the object belongs to."
             "This value should not be changed through Message box."
         }
-    };
+    };*/
 
 
     // respond to the bang message to do something
@@ -49,7 +50,7 @@ public:
     
     timer<> metro { this,
         MIN_FUNCTION {
-            class_name_str = static_cast<std::string>(class_name.get());
+            //class_name_str = static_cast<std::string>(class_name.get());
             if(class_map.find(class_name_str) == class_map.end()) { // if the key doesnt exist
                 class_map[class_name_str] = 0;
                 instance_index = 0;
@@ -66,6 +67,7 @@ public:
 
 private:
     std::string class_name_str;
+    std::string test_str;
     static std::map<std::string, int> class_map;
     int instance_index;
 };
