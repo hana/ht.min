@@ -17,6 +17,8 @@ This package was created using [the Min-DevKit for Max](https://github.com/Cycli
     - Outputs a bang at the specified time, runs on the audio thread.
 - ht.between
     - Outputs a bang from the different outlets depending on wheather the input number is between two values.
+- ht.instance
+    - Counts the objects with same name
 
 ## Notes
 - All .mxo and .mxe64 objecs are compiled on macOS and Windows10 (64bit).
