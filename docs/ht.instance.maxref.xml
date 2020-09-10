@@ -46,11 +46,6 @@
 
 	<attributelist>
 
-		<attribute name='class_name' get='1' set='1' type='symbol' size='1' >
-			<digest>The name of the class the object belongs to.This value should not be changed through Message box</digest>
-			<description>The name of the class the object belongs to.This value should not be changed through Message box. </description>
-		</attribute>
-
 	</attributelist>
 
 

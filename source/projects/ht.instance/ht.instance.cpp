@@ -30,15 +30,6 @@ public:
         }
     };
 
-    // the actual attribute for the message
-    /*attribute<symbol> class_name { this, "class_name", "hogehoge",
-        description {
-            "The name of the class the object belongs to."
-            "This value should not be changed through Message box."
-        }
-    };*/
-
-
     // respond to the bang message to do something
     message<> bang { this, "bang", "get the output.",
         MIN_FUNCTION {
@@ -67,7 +58,6 @@ public:
 
 private:
     std::string class_name_str;
-    std::string test_str;
     static std::map<std::string, int> class_map;
     int instance_index;
 };
