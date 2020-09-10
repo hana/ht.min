@@ -8,7 +8,7 @@ Max externals.
 This package was created using [the Min-DevKit for Max](https://github.com/Cycling74/min-devkit).
 
 ## How to Use
-- Download this repository into your `Max 8/Packages` folder (most case it is located in `~/Documents`).
+- Download this repository into your `Max 8/Packages` folder (by default it is located in `~/Documents`).
 
 ## List of Externals
 - ht.alarm
