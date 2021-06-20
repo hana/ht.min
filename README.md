@@ -17,8 +17,13 @@ This package was created using [the Min-DevKit for Max](https://github.com/Cycli
     - Outputs a bang at the specified time, runs on the audio thread.
 - ht.between
     - Outputs a bang from the different outlets depending on wheather the input number is between two values.
+- ht.b2bi
+    - Converts float into a uint8_t list. 
+- ht.COBS
+    - Encode a list with Consistent Overhead Byte Stuffing (COBS) algorithm. Compatible with [PacketSerial](https://github.com/bakercp/PacketSerial) library for Arduino. 
 - ht.instance
     - Counts the objects with same name
+
 
 ## Notes
 - All .mxo and .mxe64 objecs are compiled on macOS and Windows10 (64bit).
