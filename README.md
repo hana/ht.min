@@ -1,4 +1,5 @@
 # ht.min
+![CI](https://github.com/Cycling74/min-devkit/actions/workflows/test.yml/badge.svg)
 This package was created using the Min-DevKit for Max, an API and supporting tools for writing externals in modern C++.
 
 
