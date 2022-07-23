@@ -1,9 +1,8 @@
 [submodule "source/min-api"]
 	path = source/min-api
-	url = https://github.com/Cycling74/min-api.git
+	url = git@github.com:Cycling74/min-api.git
 	branch = main
 [submodule "source/min-lib"]
 	path = source/min-lib
-	url = https://github.com/Cycling74/min-lib.git
+	url = git@github.com:Cycling74/min-lib.git
 	branch = master
-	

@@ -48,6 +48,5 @@ endforeach ()
 # Comment the line below if you want automatic cmake regneration enabled
 set(CMAKE_SUPPRESS_REGENERATION true)
 
-# apple silicon support
+# Apple Silicon Support
 set(CMAKE_OSX_ARCHITECTURES x86_64;arm64)
-
