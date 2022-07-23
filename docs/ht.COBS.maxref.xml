@@ -34,14 +34,14 @@
 
 	<methodlist>
 
-		<method name='list'>
-			<digest>List of binary to process</digest>
-			<description>List of binary to process. </description>
-		</method>
-
 		<method name='anything'>
 			<digest>Things to process</digest>
 			<description>Things to process. </description>
+		</method>
+
+		<method name='list'>
+			<digest>List of binary to process</digest>
+			<description>List of binary to process. </description>
 		</method>
 
 	</methodlist>

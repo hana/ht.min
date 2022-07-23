@@ -34,14 +34,14 @@
 			<description>Set the time. </description>
 		</method>
 
-		<method name='bang'>
-			<digest>Update the internal clock in case the system clock changes</digest>
-			<description>Update the internal clock in case the system clock changes. </description>
-		</method>
-
 		<method name='check'>
 			<digest>Check the alarm time in the local time</digest>
 			<description>Check the alarm time in the local time. </description>
+		</method>
+
+		<method name='bang'>
+			<digest>Update the internal clock in case the system clock changes</digest>
+			<description>Update the internal clock in case the system clock changes. </description>
 		</method>
 
 	</methodlist>
