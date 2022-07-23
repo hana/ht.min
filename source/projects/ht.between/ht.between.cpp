@@ -87,19 +87,19 @@ private:
     inline void evaluate(c74::min::number val, c74::min::number min, c74::min::number max)    {
         if(exclude) {
             if(min < val && val < max) {
-                mid_out.send(k_sym_bang);
+                mid_out.send(to_atoms(val));
             } else if (max <= val)  {
-                high_out.send(k_sym_bang);
+                high_out.send(to_atoms(val));
             } else {
-                low_out.send(k_sym_bang);
+                low_out.send(to_atoms(val));
             }
         } else {
             if(min <= val && val <= max) {
-                mid_out.send(k_sym_bang);
+                mid_out.send(to_atoms(val));
             } else if (max < val) {
-                high_out.send(k_sym_bang);
+                high_out.send(to_atoms(val));
             } else {
-                low_out.send(k_sym_bang);
+                low_out.send(to_atoms(val));
             }
         }
     }

@@ -22,36 +22,40 @@ SCENARIO("object produces correct output") {
         REQUIRE((my_object.max == Approx(1.0)));
 
         // now proceed to testing various sequences of events
-        WHEN("a 'number' is received") {
-            my_object.number(0.5);
-            THEN("our greeting is produced at the outlet") {
-                auto& output = *c74::max::object_getoutput(my_object, 0);
-                REQUIRE((output.size() == 1));
-                REQUIRE((output[0].size() == 1));
-                REQUIRE((output[0][0] == 0));
-            }
-        }
-        
-        WHEN("a 'list' is received") {
-            std::array<number, 3> mes = {5, 10, 20};
-            my_object.list(mes);
-            THEN("our greeting is produced at the outlet") {
-                auto& output = *c74::max::object_getoutput(my_object, 0);
-                REQUIRE((output.size() == 1));
-                REQUIRE((output[0].size() == 1));
-                REQUIRE((output[0][0] == -1));
-            }
-        }
-
-        WHEN("a 'list' is received again") {
-            std::array<number, 3> mes = {30.4, 10.5, 20.1};
-            my_object.list(mes);
-            THEN("our greeting is produced at the outlet") {
-                auto& output = *c74::max::object_getoutput(my_object, 0);
-                REQUIRE((output.size() == 1));
-                REQUIRE((output[0].size() == 1));
-                REQUIRE((output[0][0] == 1));
-            }
-        }
+//        WHEN("a 'number' is received") {
+//            constexpr number n = 0.5;
+//            my_object.number(n);
+//
+//
+//            THEN("our greeting is produced at the outlet") {
+//                auto& output = *c74::max::object_getoutput(my_object, 1);
+//                INFO(output.size());
+//                REQUIRE( output.size() == 1 );
+//                REQUIRE( output[0] == to_atoms(n));
+//            }
+//        }
+//        
+//        WHEN("a 'list' is received") {
+//            THEN("Output from the left outlet") {
+//                atoms input {5, 10, 20};
+//                my_object.list(input);
+//                auto& output = *c74::max::object_getoutput(my_object, 0);
+//                CHECK(output.size() == 1);
+//                REQUIRE(output[0].size() == 1);
+//                REQUIRE(output[0][0] == Approx(5));
+//            }
+//        }
+//
+//        WHEN("a 'list' is received again") {
+//            THEN("our greeting is produced at the outlet") {
+//                atoms input {30.4, 10.5, 20.1};
+//                my_object.list(input);
+//
+//                auto& output = *c74::max::object_getoutput(my_object, 0);
+//                REQUIRE(output.size() == 1);
+//                REQUIRE(output[0].size() == 1);
+//                REQUIRE(output[0][2] == 30.4);
+//            }
+//        }
     }
 }
