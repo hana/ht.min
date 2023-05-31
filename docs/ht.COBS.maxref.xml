@@ -34,6 +34,16 @@
 
 	<methodlist>
 
+		<method name='clear'>
+			<digest></digest>
+			<description></description>
+		</method>
+
+		<method name='int'>
+			<digest>int stream to be decoded </digest>
+			<description>int stream to be decoded </description>
+		</method>
+
 		<method name='anything'>
 			<digest>Things to process</digest>
 			<description>Things to process. </description>
