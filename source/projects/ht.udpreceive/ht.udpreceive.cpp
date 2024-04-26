@@ -14,8 +14,7 @@
 
 #include <set>
 
-//#include "ThreadingUdpServer.hpp"
-#include "LiteOSCParser/src/LiteOSCParser.h"
+#include "oscpp/server.hpp"
 
 using namespace c74::min;
 
@@ -29,14 +28,15 @@ public:
     inlet<>  input	{ this, "messages in" };
     outlet<thread_check::scheduler, thread_action::fifo> message_out	{ this, "(anything) output the incoming message." };
     outlet<thread_check::scheduler, thread_action::fifo> info_out    { this, "(symbol) output the host address of the incoming message." };
+    outlet<thread_check::scheduler, thread_action::fifo> time_out    { this, "(int) output the OSC timetag." };
     
-    bool initialized = false;
+    bool connected = false;
     static std::set<uint16_t> ports;  // port, count
     int listen_port = 7400;
     int sock;
-//    bool connected = false;
     bool use_raw = false;
-    sockaddr_in addr;
+    
+    sockaddr_in host_addr, client_info;
 
     void connect(const unsigned int new_port) {
         if (0 < ports.count(new_port)) {
@@ -46,21 +46,28 @@ public:
             ports.emplace(new_port);
             listen_port = new_port;
         }
-            
-        close(sock);
-        
+                    
         sock = socket(AF_INET, SOCK_DGRAM, 0);
-        addr.sin_family = AF_INET;
-        addr.sin_addr.s_addr = inet_addr("0.0.0.0");
-        addr.sin_port = htons(listen_port);
         
-        bind(sock, reinterpret_cast<const struct sockaddr*>(&addr), sizeof(addr));
+        host_addr.sin_family = AF_INET;
+        host_addr.sin_addr.s_addr = inet_addr("0.0.0.0");
+        host_addr.sin_port = htons(listen_port);
+        
+        bind(sock, reinterpret_cast<const struct sockaddr*>(&host_addr), sizeof(host_addr));
         
         constexpr auto val = 1;
         ioctl(sock, FIONBIO, &val);
         
         cout << "binding to port " << listen_port << endl;    // post to the max console
+        connected = true;
         runner.delay(0);
+    }
+   
+    void cleanup() {
+        runner.stop();
+        close(sock);
+        
+        ports.erase(listen_port);
     }
     
     // define an optional argument for setting the message
@@ -77,7 +84,7 @@ public:
     // respond to the bang message to do something
     message<> port { this, "port", "Set the listen port.",
         MIN_FUNCTION {
-            runner.stop();
+            if(connected) cleanup();
             connect(static_cast<int>(args[0]));
             return {};
         }
@@ -90,12 +97,6 @@ public:
         }
     };
     
-    message<> size { this, "size", "print the value",
-        MIN_FUNCTION {
-            return{};
-        }
-    };
-
     // post to max window == but only when the class is loaded the first time
     message<> maxclass_setup { this, "maxclass_setup",
         MIN_FUNCTION {
@@ -103,61 +104,23 @@ public:
         }
     };
     
-    timer<> runner {this,
+    timer<> runner {
+        this,
         MIN_FUNCTION {
             std::vector<uint8_t> buf(1024);
-            sockaddr_in client_info;
             constexpr socklen_t sin_size = sizeof(client_info);
             const auto received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size));
                         
             if (received_size < 1) {
                 // not received
             } else {
-                
-                info_out.send(inet_ntoa(client_info.sin_addr));
-                
                 if (use_raw) {
                     buf.resize(received_size);
+                    info_out.send(inet_ntoa(client_info.sin_addr));
                     message_out.send(to_atoms(buf));
                 } else {
-                    qindesign::osc::LiteOSCParser osc;
-                    const bool success = osc.parse(buf.data(), received_size);
-                    
-                    if(!success) {
-                        if (osc.isMemoryError()) {
-                            cout << "Memory Error" << endl;
-                        } else {
-                            cout << "unknown error" << endl;
-                        }
-                        runner.delay(0);
-                        return {};
-                    }
-                    
-                    atoms res;
-                    res.emplace_back(osc.getAddress());
-                    
-                    const auto num_args = osc.getArgCount();
-                    cout << "arg count: " << num_args << endl;
-                    
-                    for(int i = 0; i < num_args; i++ ) {
-                        if(osc.isInt(i)) res.emplace_back(osc.getInt(i));
-                        else if (osc.isFloat(i)) res.emplace_back(osc.getFloat(i));
-                        else if (osc.isDouble(i)) res.emplace_back(osc.getDouble(i));
-                        else if (osc.isChar(i)) res.emplace_back(osc.getChar(i));
-                        else if (osc.isString(i)) res.emplace_back(osc.getString(i));
-                        else if (osc.isLong(i)) res.emplace_back(osc.getLong(i));
-                        else if (osc.isBlob(i))  {
-                            const auto blob_length = osc.getBlobLength(i);
-                            cout << "blob length: " << blob_length << endl;
-                            std::vector<uint8_t> b(blob_length);
-                            std::memcpy(b.data(), osc.getBlob(i), blob_length);
-                            res.emplace_back("blob");
-                            res.emplace_back(blob_length);
-                            res.emplace_back(b);
-                        }
-                    }
-                                 
-                    message_out.send(res);
+                    OSCPP::Server::Packet packet(buf.data(), received_size);
+                    handle_packet(packet);
                 }
             }
             
@@ -166,9 +129,62 @@ public:
         }
     };
     
+    void handle_packet(const OSCPP::Server::Packet& packet)  {
+        uint64_t time = 0;
+        if(packet.isMessage()) {
+            OSCPP::Server::Message msg(packet);
+                                                        
+            OSCPP::Server::ArgStream args(msg.args());
+
+            atoms atm;
+            atm.emplace_back(msg.address());
+            
+            while(!args.atEnd()) {
+                const auto tag = args.tag();
+                switch(tag) {
+                    case 'i':
+                        atm.emplace_back(args.int32());
+                        break;
+                    case 'f':
+                        atm.emplace_back(args.float32());
+                        break;
+                    case 's':
+                        atm.emplace_back(args.string());
+                        break;
+                    case 'b':
+                    {
+                        const auto blob = args.blob();
+                        const auto size = blob.size();
+                        std::vector<uint8_t> data(size, 0);
+                        std::memcpy(data.data(), blob.data(), size);
+                        atm.emplace_back("OSCBlob");
+                        atm.emplace_back(size);
+                        const auto a = to_atoms(data);
+                        atm.reserve(atm.size() + a.size());
+                        std::copy(a.begin(),a.end(),std::back_inserter(atm));
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            }
+            time_out.send(time >> 32, time & 0xffffffff);
+            info_out.send(inet_ntoa(client_info.sin_addr));
+            message_out.send(atm);
+        } else if (packet.isBundle()) {
+            OSCPP::Server::Bundle bundle(packet);
+            time = bundle.time();
+            OSCPP::Server::PacketStream packets(bundle.packets());
+            while (!packets.atEnd()) {
+                handle_packet(packets.next());
+            }
+        } else {
+            cerr << "Packet is neither a message nor a bundle" << endl;
+        }
+    }
+    
     ~ht_udpreceive() {
-        runner.stop();
-        close(sock);
+        if(connected) cleanup();
     }
 };
 

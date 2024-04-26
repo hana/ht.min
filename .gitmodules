@@ -6,3 +6,7 @@
 	path = source/min-lib
 	url = git@github.com:Cycling74/min-lib.git
 	branch = master
+[submodule "source/projects/ht.udpreceive/oscpp"]
+	path = source/projects/ht.udpreceive/oscpp
+	url = git@github.com:kaoskorobase/oscpp.git
+	branch = master
