@@ -11,16 +11,19 @@ include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 # MAX EXTERNAL
 #############################################################
 
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_CXX_STANDARD 17)
 
+# message(STATUS "C74_INCLUDES: ${C74_INCLUDES}")
 include_directories( 
 	"${C74_INCLUDES}"
+	oscpp/include
 )
 
 
-set( SOURCE_FILES
+set(SOURCE_FILES
 	${PROJECT_NAME}.cpp
 )
-
 
 add_library( 
 	${PROJECT_NAME} 
@@ -28,9 +31,16 @@ add_library(
 	${SOURCE_FILES}
 )
 
+target_compile_features(${PROJECT_NAME} PUBLIC 
+	cxx_std_17
+	cxx_attribute_deprecated	
+)
+
+target_include_directories(${PROJECT_NAME} PUBLIC
+	oscpp/include
+)
 
 include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)
-
 
 #############################################################
 # UNIT TEST

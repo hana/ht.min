@@ -27,17 +27,17 @@
 			<description>Initial value for the greeting attribute. </description>
 		</objarg>
 
+		<objarg name='raw' optional='1' type='bool'>
+			<digest>True if handle raw UDP message </digest>
+			<description>True if handle raw UDP message </description>
+		</objarg>
+
 	</objarglist>
 
 
 	<!--MESSAGES-->
 
 	<methodlist>
-
-		<method name='size'>
-			<digest>print the value </digest>
-			<description>print the value </description>
-		</method>
 
 		<method name='bang'>
 			<digest>print the value </digest>

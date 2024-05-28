@@ -8,5 +8,5 @@
 	branch = master
 [submodule "source/projects/ht.udpreceive/oscpp"]
 	path = source/projects/ht.udpreceive/oscpp
-	url = git@github.com:kaoskorobase/oscpp.git
+	url = git@github.com:hana/oscpp.git
 	branch = master
