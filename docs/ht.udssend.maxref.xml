@@ -34,9 +34,9 @@
 
 	<methodlist>
 
-		<method name='anything'>
-			<digest>anything to be sent</digest>
-			<description>anything to be sent. </description>
+		<method name='list'>
+			<digest>list to be sent</digest>
+			<description>list to be sent. </description>
 		</method>
 
 	</methodlist>

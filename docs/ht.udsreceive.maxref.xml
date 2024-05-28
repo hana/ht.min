@@ -24,7 +24,7 @@
 
 		<objarg name='Destination address' optional='1' type='symbol'>
 			<digest>/tmp/thx</digest>
-			<description>/tmp/thx.uds.default.sock </description>
+			<description>/tmp/thx.default.sock </description>
 		</objarg>
 
 	</objarglist>
@@ -34,19 +34,9 @@
 
 	<methodlist>
 
-		<method name='close'>
-			<digest>close current socket </digest>
-			<description>close current socket </description>
-		</method>
-
-		<method name='bind'>
-			<digest>connect to a socket </digest>
-			<description>connect to a socket </description>
-		</method>
-
 		<method name='bang'>
-			<digest>flash received messages </digest>
-			<description>flash received messages </description>
+			<digest>flush the buffer </digest>
+			<description>flush the buffer </description>
 		</method>
 
 	</methodlist>
