@@ -5,12 +5,21 @@
 
 #include "c74_min.h"
 
+#if defined(_WIN64)
+
+#include <WinSock2.h>
+
+#elif defined(__APPLE__)
+
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+#endif
+
 
 #include <set>
 
@@ -46,6 +55,11 @@ public:
             ports.emplace(new_port);
             listen_port = new_port;
         }
+
+#ifdef __WIN64
+        WSAData wsadata;
+        WSAStartup(MAKEWORD(2, 0), &wsadata);
+#endif
                     
         sock = socket(AF_INET, SOCK_DGRAM, 0);
         
@@ -55,9 +69,11 @@ public:
         
         bind(sock, reinterpret_cast<const struct sockaddr*>(&host_addr), sizeof(host_addr));
         
+#ifdef __APPLE__
         constexpr auto val = 1;
         ioctl(sock, FIONBIO, &val);
-        
+#endif
+
         cout << "binding to port " << listen_port << endl;    // post to the max console
         connected = true;
         runner.delay(0);
@@ -65,8 +81,12 @@ public:
    
     void cleanup() {
         runner.stop();
+#if defined (__WIN64)
+        closesocket(sock);
+        WSACleanup();
+#elif defined(__APPLE__)
         close(sock);
-        
+#endif
         ports.erase(listen_port);
     }
     
