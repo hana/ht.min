@@ -8,6 +8,7 @@
 #if defined(_WIN64)
 
 #include <WinSock2.h>
+#pragma comment(lib, "WS2_32")
 
 #elif defined(__APPLE__)
 
@@ -19,7 +20,6 @@
 #include <unistd.h>
 
 #endif
-
 
 #include <set>
 
@@ -33,6 +33,10 @@ public:
     MIN_TAGS		{"Networking"};
     MIN_AUTHOR		{"Hananosuke Takimoto"};
     MIN_RELATED		{"udpreceive, udpsend, jit.net.recv"};
+
+#ifdef _WIN64
+    using socklen_t = int;
+#endif
 
     inlet<>  input	{ this, "messages in" };
     outlet<thread_check::scheduler, thread_action::fifo> message_out	{ this, "(anything) output the incoming message." };
@@ -48,6 +52,14 @@ public:
     sockaddr_in host_addr, client_info;
 
     void connect(const unsigned int new_port) {
+#ifdef _WIN64
+        WSAData wsadata;
+        //if (WSAStartup(MAKEWORD(2, 0), &wsadata) != 0) {
+        //    error("Error initializing Windows socket.");
+        //    return;
+        //};
+#endif
+
         if (0 < ports.count(new_port)) {
             error("Specified port is already opened.");
             return;
@@ -55,11 +67,6 @@ public:
             ports.emplace(new_port);
             listen_port = new_port;
         }
-
-#ifdef __WIN64
-        WSAData wsadata;
-        WSAStartup(MAKEWORD(2, 0), &wsadata);
-#endif
                     
         sock = socket(AF_INET, SOCK_DGRAM, 0);
         
@@ -81,9 +88,9 @@ public:
    
     void cleanup() {
         runner.stop();
-#if defined (__WIN64)
+#if defined (_WIN64)
         closesocket(sock);
-        WSACleanup();
+        //WSACleanup();
 #elif defined(__APPLE__)
         close(sock);
 #endif
@@ -127,7 +134,7 @@ public:
     timer<> runner {
         this,
         MIN_FUNCTION {
-            std::vector<uint8_t> buf(1024);
+            std::vector<char> buf(1024);
             constexpr socklen_t sin_size = sizeof(client_info);
             const auto received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size));
                         
