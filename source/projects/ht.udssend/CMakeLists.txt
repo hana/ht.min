@@ -3,6 +3,10 @@
 
 cmake_minimum_required(VERSION 3.0)
 
+if(WIN32)
+return()
+endif(WIN32)
+
 set(C74_MIN_API_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../min-api)
 include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 
