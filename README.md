@@ -6,7 +6,9 @@ Max externals created using the Min-DevKit for Max, an API and supporting tools 
 This package was created using [the Min-DevKit for Max](https://github.com/Cycling74/min-devkit).
 
 ## How to Use
-- Download this repository into your `Max 8/Packages` folder (by default it is located in `~/Documents`).
+### If you want to build by yourself.
+1. Clone this repository into your `Max 8/Packages` folder or `Max 8/lib` (by default it is located in `~/Documents`).
+2. Follow [this instruction](https://github.com/Cycling74/min-devkit?tab=readme-ov-file#building) while replacing `min-devkit` as `ht.min`
 
 ## List of Externals
 - ht.alarm
@@ -24,7 +26,7 @@ This package was created using [the Min-DevKit for Max](https://github.com/Cycli
 
 
 ## Notes
-- All .mxo and .mxe64 objecs are compiled on macOS and Windows10 (64bit).
+- All .mxo and .mxe64 objecs are compiled on macOS and Windows11 (64bit).
 
 ## Licence
 MIT
