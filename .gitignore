@@ -1,3 +1,6 @@
+externals/*.mxo
+externals/*.mxe64
+
 __*
 sysbuild
 *.sdf
@@ -16,4 +19,3 @@ tmp
 .DS_Store
 .vs
 package-info.json
-
