@@ -134,7 +134,7 @@ public:
     timer<> runner {
         this,
         MIN_FUNCTION {
-            std::vector<char> buf(1024);
+            std::vector<uint8_t> buf(1024);
             constexpr socklen_t sin_size = sizeof(client_info);
             const auto received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size));
                         
