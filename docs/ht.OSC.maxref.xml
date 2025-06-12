@@ -23,8 +23,8 @@
 	<objarglist>
 
 		<objarg name='operation' optional='1' type='symbol'>
-			<digest>Operation mode - encode/decode</digest>
-			<description>Operation mode - encode/decode. </description>
+			<digest>Operation mode - encode from binary to list or decode list to binary</digest>
+			<description>Operation mode - encode from binary to list or decode list to binary. </description>
 		</objarg>
 
 	</objarglist>
@@ -34,14 +34,14 @@
 
 	<methodlist>
 
-		<method name='list'>
-			<digest>binary </digest>
-			<description>binary </description>
+		<method name='anything'>
+			<digest>binary or list </digest>
+			<description>binary or list </description>
 		</method>
 
-		<method name='bang'>
-			<digest>Post the greeting</digest>
-			<description>Post the greeting. </description>
+		<method name='list'>
+			<digest>binary or list </digest>
+			<description>binary or list </description>
 		</method>
 
 	</methodlist>
