@@ -46,6 +46,7 @@ public:
     bool connected = false;
     static std::set<uint16_t> ports;  // port, count
     int listen_port = 7400;
+    static constexpr unsigned int Runner_Interval = 0;
     int sock;
     bool use_raw = false;
     
@@ -83,7 +84,7 @@ public:
 
         cout << "binding to port " << listen_port << endl;    // post to the max console
         connected = true;
-        runner.delay(0);
+        runner.delay(Runner_Interval);
     }
    
     void cleanup() {
@@ -111,13 +112,14 @@ public:
     // respond to the bang message to do something
     message<> port { this, "port", "Set the listen port.",
         MIN_FUNCTION {
+            const auto new_port = static_cast<int>(args[0]);
             if(connected) cleanup();
-            connect(static_cast<int>(args[0]));
+            connect(new_port);
             return {};
         }
     };
 
-    message<> bang { this, "bang", "print the value",
+    message<> bang { this, "bang", "print the port",
         MIN_FUNCTION {
             cout << listen_port << endl;
             return{};
@@ -127,6 +129,7 @@ public:
     // post to max window == but only when the class is loaded the first time
     message<> maxclass_setup { this, "maxclass_setup",
         MIN_FUNCTION {
+            cout << "ht.udpreceive ver 1.0.1" << endl;
             return {};
         }
     };
@@ -136,11 +139,10 @@ public:
         MIN_FUNCTION {
             std::vector<char> buf(1024);
             constexpr socklen_t sin_size = sizeof(client_info);
-            const auto received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size));
-                        
-            if (received_size < 1) {
-                // not received
-            } else {
+            
+            auto received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size));
+            
+            while(0 < received_size) {
                 if (use_raw) {
                     buf.resize(received_size);
                     info_out.send(inet_ntoa(client_info.sin_addr));
@@ -149,9 +151,10 @@ public:
                     OSCPP::Server::Packet packet(buf.data(), received_size);
                     handle_packet(packet);
                 }
+                received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size));
             }
             
-            runner.delay(0);
+            runner.delay(Runner_Interval);
             return {};
         }
     };
