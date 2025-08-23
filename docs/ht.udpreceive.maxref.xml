@@ -39,14 +39,14 @@
 
 	<methodlist>
 
+		<method name='bang'>
+			<digest>print the port </digest>
+			<description>print the port </description>
+		</method>
+
 		<method name='port'>
 			<digest>Set the listen port</digest>
 			<description>Set the listen port. </description>
-		</method>
-
-		<method name='bang'>
-			<digest>print the value </digest>
-			<description>print the value </description>
 		</method>
 
 	</methodlist>
