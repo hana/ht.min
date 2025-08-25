@@ -1,7 +1,7 @@
 # Copyright 2018 The Min-DevKit Authors. All rights reserved.
 # Use of this source code is governed by the MIT License found in the License.md file.
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.60)
 
 if(WIN32)
 return()
@@ -15,6 +15,8 @@ include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 # MAX EXTERNAL
 #############################################################
 
+set(CMAKE_C_STANDARD 17)
+set(CMAKE_CXX_STANDARD 23)
 
 include_directories( 
 	"${C74_INCLUDES}"

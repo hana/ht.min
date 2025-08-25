@@ -99,13 +99,13 @@ public:
     }
     
     // define an optional argument for setting the message
-    argument<int> port_arg { this, "port", "Initial value for the greeting attribute.", true,
+    argument<int> port_arg { this, "port", "Specifies the local port that the ht.udpreceive object will use to listen for incoming messages.", true,
         MIN_ARGUMENT_FUNCTION {
             connect(static_cast<int>(arg));
         }
     };
     
-    argument<bool> raw_arg {this, "raw", "True if handle raw UDP message", MIN_ARGUMENT_FUNCTION {
+    argument<bool> raw_arg {this, "raw", "True if handle raw UDP message. Default: false.", MIN_ARGUMENT_FUNCTION {
         use_raw = arg;
     }};
     
