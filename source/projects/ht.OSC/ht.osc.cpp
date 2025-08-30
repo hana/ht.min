@@ -15,7 +15,7 @@ using namespace c74::min;
 
 class ht_OSC : public object<ht_OSC> {
 private:
-    c74::min::atoms encode(const c74::min::atoms& packet) {    // binary to list
+    c74::min::atoms decode(const c74::min::atoms& packet) {    // binary to list
         std::vector<uint8_t> p;
         p.reserve(packet.size());
         
@@ -71,7 +71,7 @@ private:
         return atm;
     }
     
-    c74::min::atoms decode(const c74::min::atoms& atms) {   // list to binary
+    c74::min::atoms encode(const c74::min::atoms& atms) {   // list to binary
         static std::vector<uint8_t> buffer;
         buffer.resize(2048);
         OSCPP::Client::Packet packet(buffer.data(), buffer.size());
@@ -107,13 +107,14 @@ private:
     function process = MIN_FUNCTION {
         switch(operation) {
             case operations::encode:
+                output.send(encode(args));
+                break;
+            case operations::decode:
                 if(args[0].type() == c74::min::message_type::symbol_argument) {
                     cerr << "Decode only supports binaries" << endl;
                     return{};
                 }
-                output.send(encode(args));
-                break;
-            case operations::decode:
+
                 output.send(decode(args));
                 break;
             default:
@@ -127,10 +128,10 @@ public:
     MIN_DESCRIPTION	{"Encode list to binary, decode binary to list."};
     MIN_TAGS		{"utilities"};
     MIN_AUTHOR		{"Hananosuke Takimoto"};
-    MIN_RELATED		{"udpreceive, udpsend, ht.udpreceive"};
+    MIN_RELATED		{"udpreceive, udpsend, ht.udpreceive, ht.udpsend"};
     
-    inlet<>  input	{ this, "(bang) output the unix time" };
-    outlet<> output	{ this, "(int) output the unix time" };
+    inlet<>  input	{ this, "(list) things to be handled" };
+    outlet<> output	{ this, "(list) outputs atoms or binary" };
     
     enum class operations : int {encode, decode, enum_count};
     enum_map operation_range = {"encode", "decode"};
