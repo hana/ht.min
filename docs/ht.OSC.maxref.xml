@@ -65,6 +65,7 @@
 		<seealso name='udpreceive' />
 		<seealso name='udpsend' />
 		<seealso name='ht.udpreceive' />
+		<seealso name='ht.udpsend' />
 	</seealsolist>
 
 

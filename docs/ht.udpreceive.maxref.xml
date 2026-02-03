@@ -23,13 +23,13 @@
 	<objarglist>
 
 		<objarg name='port' optional='0' type='int'>
-			<digest>Initial value for the greeting attribute</digest>
-			<description>Initial value for the greeting attribute. </description>
+			<digest>Specifies the local port that the ht.udpreceive object will use to listen for incoming messages</digest>
+			<description>Specifies the local port that the ht.udpreceive object will use to listen for incoming messages. </description>
 		</objarg>
 
 		<objarg name='raw' optional='1' type='bool'>
-			<digest>True if handle raw UDP message </digest>
-			<description>True if handle raw UDP message </description>
+			<digest>True if handle raw UDP message</digest>
+			<description>True if handle raw UDP message. Default: false. </description>
 		</objarg>
 
 	</objarglist>

@@ -16,6 +16,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 include_directories( 
 	"${C74_INCLUDES}"
+	${CMAKE_CURRENT_SOURCE_DIR}/../../../lib
 )
 
 

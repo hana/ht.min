@@ -16,12 +16,14 @@
 # include <unistd.h>
 # include <string.h>
 
+//#include <compare>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
 
 
+static_assert(__cplusplus >= 202002L, "number of array elements must greater than 0");
 
 namespace ht::network {
 struct host_t {
@@ -30,10 +32,10 @@ struct host_t {
     std::string name;
 //    auto& operator=(const host_t& other);
 //    auto& operator=(const std::string& hostname);
-
-    auto operator<=>(const host_t& other) const = default;
+    
     host_t& operator=(const host_t& other) = default;
     host_t& operator=(const std::string& name);
+    auto operator<=> (const host_t&) const = default;
     void set(const std::string& hostname);
     constexpr auto c_str() const {
         return name.c_str();
@@ -48,7 +50,7 @@ struct destination_t {
     host_t host;
     uint16_t port;
     host_t source;
-    auto operator<=>(const destination_t& other) const = default;
+    auto operator<=>(const destination_t&) const = default;
 };
 
 struct connection_t {

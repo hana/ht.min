@@ -11,18 +11,17 @@ include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 # MAX EXTERNAL
 #############################################################
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 23)
-
 # message(STATUS "C74_INCLUDES: ${C74_INCLUDES}")
 include_directories( 
 	"${C74_INCLUDES}"
+	${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_SOURCE_DIR}/lib/oscpp/include
 )
 
 
 set(SOURCE_FILES
 	${PROJECT_NAME}.cpp
+	udp_sender.cpp
 )
 
 add_library( 
@@ -32,7 +31,7 @@ add_library(
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC 
-	cxx_std_17
+	cxx_std_23
 	cxx_attribute_deprecated	
 )
 
@@ -41,6 +40,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)
+
+set(CMAKE_C_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #############################################################
 # UNIT TEST

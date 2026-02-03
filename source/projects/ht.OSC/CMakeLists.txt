@@ -32,7 +32,7 @@ add_library(
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC 
-	cxx_std_17
+	cxx_std_23
 	cxx_attribute_deprecated	
 )
 

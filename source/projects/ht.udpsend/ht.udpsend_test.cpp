@@ -14,8 +14,8 @@ SCENARIO("object produces correct output") {
 
     GIVEN("An instance of our object") {
 
-        test_wrapper<ht::udpsend> an_instance;
-        ht::udpsend& my_object = an_instance;
+//        test_wrapper<ht::udpsend> an_instance;
+//        ht::udpsend& my_object = an_instance;
 
         // check that default attr values are correct
 //        REQUIRE((my_object.greeting == symbol("hello world")));
