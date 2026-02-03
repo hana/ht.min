@@ -39,9 +39,9 @@
 
 	<methodlist>
 
-		<method name='bang'>
-			<digest>print the port </digest>
-			<description>print the port </description>
+		<method name='fullthrottle'>
+			<digest>full throttle toggle </digest>
+			<description>full throttle toggle </description>
 		</method>
 
 		<method name='port'>
