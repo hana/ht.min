@@ -23,13 +23,18 @@
 	<objarglist>
 
 		<objarg name='host' optional='0' type='symbol'>
-			<digest>host address </digest>
-			<description>host address </description>
+			<digest>Destination address </digest>
+			<description>Destination address </description>
 		</objarg>
 
 		<objarg name='port' optional='0' type='int'>
-			<digest>host port </digest>
-			<description>host port </description>
+			<digest>Destination port </digest>
+			<description>Destination port </description>
+		</objarg>
+
+		<objarg name='source' optional='1' type='symbol'>
+			<digest>Send source address </digest>
+			<description>Send source address </description>
 		</objarg>
 
 	</objarglist>
@@ -39,9 +44,19 @@
 
 	<methodlist>
 
-		<method name='bang'>
-			<digest>print the port </digest>
-			<description>print the port </description>
+		<method name='bundle'>
+			<digest>1 to open bundle, 0 to close bandle and send </digest>
+			<description>1 to open bundle, 0 to close bandle and send </description>
+		</method>
+
+		<method name='print'>
+			<digest>Output IP addresses of all interface </digest>
+			<description>Output IP addresses of all interface </description>
+		</method>
+
+		<method name='anything'>
+			<digest>send data</digest>
+			<description>send data. </description>
 		</method>
 
 	</methodlist>
@@ -50,6 +65,31 @@
 	<!--ATTRIBUTES-->
 
 	<attributelist>
+
+		<attribute name='double' get='1' set='1' type='long' size='1' >
+			<digest></digest>
+			<description></description>
+		</attribute>
+
+		<attribute name='host' get='1' set='1' type='symbol' size='1' >
+			<digest>Destination host ID </digest>
+			<description>Destination host ID </description>
+		</attribute>
+
+		<attribute name='port' get='1' set='1' type='float64' size='1' >
+			<digest>Destination network port </digest>
+			<description>Destination network port </description>
+		</attribute>
+
+		<attribute name='raw' get='1' set='1' type='long' size='1' >
+			<digest>Handle input as raw binary</digest>
+			<description>Handle input as raw binary. If true, input is supossed to be an list of uint8_t value (0-255) </description>
+		</attribute>
+
+		<attribute name='source' get='1' set='1' type='symbol' size='1' >
+			<digest>Source address </digest>
+			<description>Source address </description>
+		</attribute>
 
 	</attributelist>
 

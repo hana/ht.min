@@ -77,12 +77,6 @@ udp::sender::sender(const std::string& hostname, const int port, const std::stri
     }
 }
 
-ssize_t udp::sender::send(const std::vector<uint8_t>& vec) const {
-        auto& sock = connection->sock;
-        auto& addr = connection->addr;
-        return sendto(sock, vec.data(), vec.size(), 0, (struct sockaddr *)&addr, sizeof(addr));
-}
-
 udp::sender::~sender() {
     if(connections[destination].use_count() == 1) {
         close(connection->sock);

@@ -15,7 +15,6 @@ include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 include_directories( 
 	"${C74_INCLUDES}"
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/lib/oscpp/include
 )
 
 
@@ -36,7 +35,9 @@ target_compile_features(${PROJECT_NAME} PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	${CMAKE_SOURCE_DIR}/lib/oscpp/include
+    ${CMAKE_SOURCE_DIR}/lib/oscpp/include
+    ${CMAKE_SOURCE_DIR}/lib/oscpkt
+    ${CMAKE_SOURCE_DIR}/lib/ht
 )
 
 include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)

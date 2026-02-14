@@ -51,6 +51,16 @@
 
 	<attributelist>
 
+		<attribute name='double' get='1' set='1' type='long' size='1' >
+			<digest>If enabled, floating-point values are handleed as double </digest>
+			<description>If enabled, floating-point values are handleed as double </description>
+		</attribute>
+
+		<attribute name='error_check' get='1' set='1' type='long' size='1' >
+			<digest>Error check </digest>
+			<description>Error check </description>
+		</attribute>
+
 		<attribute name='operation' get='1' set='1' type='long' size='1' >
 			<digest>Choose the operation to perfome with the input</digest>
 			<description>Choose the operation to perfome with the input. encode or decode. </description>

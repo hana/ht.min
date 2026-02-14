@@ -35,9 +35,11 @@
 #include <span>
 #include <chrono>
 
-template<typename T>
-class udpreceiver {
 
+namespace udp {
+template<typename T>
+class receiver {
+    
 private:
     
 #ifdef _WIN64
@@ -50,53 +52,58 @@ private:
     const int listen_port;
     int sock;
     std::thread t;
+    
 public:
-    udpreceiver(const std::string_view host, const int port) : listen_port(port) {
+    receiver(const std::string_view host, const int port) : listen_port(port) {
         t = std::thread([&]() {
 #ifdef _WIN64
             WSAData wsadata;
-#endif
+#endif            
             sockaddr_in host_addr;
             sock = socket(AF_INET, SOCK_DGRAM, 0);
             host_addr.sin_family = AF_INET;
             host_addr.sin_addr.s_addr = inet_addr(host.data());
             host_addr.sin_port = htons(listen_port);
-                        
-            bind(sock, reinterpret_cast<const struct sockaddr*>(&host_addr), sizeof(host_addr));
             
-            static std::vector<uint8_t> buf(1500);
-            static sockaddr_in client_info;
+            if(bind(sock, reinterpret_cast<const struct sockaddr*>(&host_addr), sizeof(host_addr)) != 0)  return;
+                        
+            std::vector<uint8_t> buf(1500);
+            sockaddr_in client_info;
             constexpr socklen_t sin_size = sizeof(client_info);
-
-#ifdef __APPLE__
+            
+//#ifdef __APPLE__
 //            constexpr auto val = 1;
 //            ioctl(sock, FIONBIO, &val);
-#endif
+//#endif
             
             running = true;
             
-            while(running.load()) {
-                const auto received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size));
-                if(0 < received_size) {
-                    for(const auto& instance : listeners) {
-                        instance->on_receive(inet_ntoa(client_info.sin_addr), std::span{buf.begin(), static_cast<std::size_t>(received_size)});
+            while(true) {
+                if(const auto received_size = recvfrom(sock, buf.data(), buf.size(), 0, reinterpret_cast<sockaddr*>(&client_info), const_cast<socklen_t*>(&sin_size)); 0 < received_size) {
+                    if(running) {
+                        for(const auto& instance : listeners) {
+                            instance->on_receive(inet_ntoa(client_info.sin_addr), std::span{buf.begin(), static_cast<std::size_t>(received_size)});
+                        }
+                    } else {
+                        break;
                     }
+
                 }
             }
-
-#if defined (_WIN64)
+      
+#ifdef _WIN64
             closesocket(sock);
-#elif defined(__APPLE__)
+#else
             close(sock);
 #endif
         });
         
     };
-        
+    
     auto get_sock() const {
         return sock;
     }
-
+    
     void add_listener(T* listener) {
         listeners.emplace(listener);
     };
@@ -112,7 +119,7 @@ public:
     auto empty() const {
         return listeners.empty();
     }
-
+    
     void terminate() {
         running.store(false);
         
@@ -127,10 +134,12 @@ public:
         close(temp_sock);
     }
     
-    ~udpreceiver() {
+    ~receiver() {
         terminate();
         t.join();
     }
 };
+
+}
 
 #endif /* udpreceiver_hpp */

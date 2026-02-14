@@ -16,28 +16,31 @@ set(CMAKE_CXX_STANDARD 23)
 
 # message(STATUS "C74_INCLUDES: ${C74_INCLUDES}")
 include_directories( 
-	"${C74_INCLUDES}"
-	${CMAKE_SOURCE_DIR}/lib/oscpp/include
+    "${C74_INCLUDES}"
+#    ${CMAKE_SOURCE_DIR}/lib/oscpp/include
+#    ${CMAKE_SOURCE_DIR}/lib/oscpkt
 )
 
 
 set(SOURCE_FILES
-	${PROJECT_NAME}.cpp
+    ${PROJECT_NAME}.cpp
 )
 
 add_library( 
-	${PROJECT_NAME} 
-	MODULE
-	${SOURCE_FILES}
+    ${PROJECT_NAME}
+    MODULE
+    ${SOURCE_FILES}
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC 
-	cxx_std_23
-	cxx_attribute_deprecated	
+    cxx_std_23
+    cxx_attribute_deprecated
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-	${CMAKE_SOURCE_DIR}/lib/oscpp/include
+    ${CMAKE_SOURCE_DIR}/lib/oscpp/include
+    ${CMAKE_SOURCE_DIR}/lib/oscpkt
+    ${CMAKE_SOURCE_DIR}/lib/ht
 )
 
 include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)

@@ -22,6 +22,9 @@
 #include <string>
 #include <vector>
 
+#ifdef __APPLE__
+#include <ifaddrs.h>
+#endif
 
 static_assert(__cplusplus >= 202002L, "number of array elements must greater than 0");
 
@@ -63,13 +66,29 @@ class sender {
 public:
     sender();
     sender(const std::string& hostname, const int port, const std::string& source = "0.0.0.0");
-    ssize_t send(const std::vector<uint8_t>& data) const;
-//    int send(char* data, const std::size_t size) const;
+
+    template<typename T>
+    ssize_t send(const T* data, const std::size_t size) const {
+            auto& sock = connection->sock;
+            auto& addr = connection->addr;
+            return sendto(sock, data, size, 0, (struct sockaddr *)&addr, sizeof(addr));
+    }
+    
+    template<typename T>
+    ssize_t send(const std::vector<T>& vec) const {
+        return this->send(vec.data(), vec.size());
+    };
+    
+    
+    
     ~sender();
     
     destination_t destination;
     std::shared_ptr<connection_t> connection = nullptr;
 
+#ifdef __APPLE__
+        
+#endif
 private:
     static std::map<destination_t, std::shared_ptr<connection_t>> connections;
 };

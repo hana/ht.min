@@ -39,11 +39,6 @@
 
 	<methodlist>
 
-		<method name='fullthrottle'>
-			<digest>full throttle toggle </digest>
-			<description>full throttle toggle </description>
-		</method>
-
 		<method name='port'>
 			<digest>Set the listen port</digest>
 			<description>Set the listen port. </description>
@@ -55,6 +50,16 @@
 	<!--ATTRIBUTES-->
 
 	<attributelist>
+
+		<attribute name='fullthrottle' get='1' set='1' type='long' size='1' >
+			<digest>Enabling this option reduces latency at the cost of increased CPU usage</digest>
+			<description>Enabling this option reduces latency at the cost of increased CPU usage. </description>
+		</attribute>
+
+		<attribute name='raw' get='1' set='1' type='long' size='1' >
+			<digest>Handle incoming message as raw udp message </digest>
+			<description>Handle incoming message as raw udp message </description>
+		</attribute>
 
 	</attributelist>
 

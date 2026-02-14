@@ -32,6 +32,8 @@
 #include "oscpp/server.hpp"
 #include "udpreceiver.hpp"
 
+#include "oscpkt.hh"
+
 using namespace c74::min;
 
 class ht_udpreceive : public object<ht_udpreceive> {
@@ -58,7 +60,7 @@ public:
     bool use_raw = false;
     sockaddr_in host_addr, client_info;
     
-    using udp_receiver = udpreceiver<ht_udpreceive>;
+    using udp_receiver = udp::receiver<ht_udpreceive>;
     static std::unordered_map<int, udp_receiver> receivers;
     udp_receiver* receiver = nullptr;
     
@@ -67,7 +69,7 @@ public:
         std::optional<uint64_t> timetag;
         atoms data;
     };
-    std::queue<message_t> queue;
+    fifo<message_t> queue {1024};
     std::mutex mtx;
     
     void connect() {
@@ -88,6 +90,7 @@ public:
         if(receiver->empty()) {
             receivers.erase(listen_port);
         }
+        receiver = nullptr;
     }
     
     // define an optional argument for setting the message
@@ -99,9 +102,11 @@ public:
         }
     };
     
-    argument<bool> raw_arg {this, "raw", "True if handle raw UDP message. Default: false.", MIN_ARGUMENT_FUNCTION {
-        use_raw = arg;
-    }};
+    argument<bool> raw_arg {this, "raw", "True if handle raw UDP message. Default: false.",
+        MIN_ARGUMENT_FUNCTION {
+            use_raw = arg;
+        }
+    };
     
     // respond to the bang message to do something
     message<> port { this, "port", "Set the listen port.",
@@ -113,11 +118,26 @@ public:
         }
     };
     
-    message<> fullthrottle { this, "fullthrottle", "full throttle toggle",
-        MIN_FUNCTION {
-            if(0 < static_cast<int>(args[0])) runner_interval = 0.0;
-            else runner_interval = 1.0;
-            return{};
+    attribute<bool> fullthrottle { this, "fullthrottle", false,
+        title {"Fullthrottle"},
+        description {"Enabling this option reduces latency at the cost of increased CPU usage."},
+        setter {
+            MIN_FUNCTION {
+                if(0 < static_cast<int>(args[0])) runner_interval = 0.0;
+                else runner_interval = 1.0;
+                return args;
+            }
+        }
+    };
+    
+    attribute<bool> raw_attr {this, "raw", false,
+        title{"Raw"},
+        description {"Handle incoming message as raw udp message"},
+        setter {
+            MIN_FUNCTION {
+                use_raw = static_cast<bool>(args[0]);
+                return args;
+            }
         }
     };
     
@@ -128,26 +148,21 @@ public:
             return {};
         }
     };
-    
+
     timer<> runner {
         this,
         MIN_FUNCTION {
-            if(queue.size()) {
-                const auto& data = queue.front();
+            
+            message_t data;
+            while(queue.try_dequeue(data)) {
                 info_out.send(data.remote_address);
                 if(data.timetag.has_value()) {
                     time_out.send(data.timetag.value());
                 }
                 message_out.send(data.data);
-                std::lock_guard<std::mutex> lock{mtx};
-                queue.pop();
-            }
-            if(queue.size()) {
-                runner.delay(0);
-            } else {
-                runner.delay(runner_interval);
-            }
+            };
 
+            runner.delay(runner_interval);
             return {};
         }
     };
@@ -192,27 +207,104 @@ public:
         return atms;
     }
     
+    void parse_oscpkt(const char* adr, const std::span<uint8_t> data) {
+        oscpkt::PacketReader pr(data.data(), data.size());
+        
+        if (!pr.isOk()) {
+            cerr << "Could not parse the data" << endl;
+            return;
+        }
+        
+        oscpkt::Message* msg;
+        
+        while (pr.isOk() && (msg = pr.popMessage()) != nullptr) {
+            atoms atm;
+            atm.clear();
+            
+            atm.emplace_back(msg->addressPattern());
+            // 型タグの文字列を取得 (例: "ifs" なら Int, Float, String の順)
+            std::string tags = msg->typeTags();
+            
+            // 引数を取り出すためのリーダーを取得
+            oscpkt::Message::ArgReader arg = msg->arg();
+
+            // 型タグを一文字ずつ判定して、適切な型でpopする
+            for (size_t i = 0; i < tags.length(); ++i) {
+                char type = tags[i];
+
+                switch (type) {
+                    case 'i': { // 32bit integer
+                        int32_t val;
+                        arg.popInt32(val);
+                        atm.emplace_back(val);
+                        break;
+                    }
+                    case 'f': { // 32bit float
+                        float val;
+                        arg.popFloat(val);
+                        atm.emplace_back(val);
+                        break;
+                    }
+                    case 's': { // string
+                        std::string val;
+                        arg.popStr(val);
+                        atm.emplace_back(val);
+                        break;
+                    }
+                    case 'b': { // Blob
+                        std::vector<char> blob;
+                        arg.popBlob(blob);
+                        atm.emplace_back("OSCBlob");
+                        atm.emplace_back(blob.size());
+                        const auto a = to_atoms(blob);
+                        atm.reserve(atm.size() + a.size());
+                        std::copy(a.begin(),a.end(),std::back_inserter(atm));
+                        break;
+                    }
+                    // --- OSC 1.0/1.1 expanded tag ---
+                    case 'T': // True
+                        atm.emplace_back(true);
+                        break;
+                    case 'F': // False
+                        atm.emplace_back(false);
+                        break;
+                    case 'N': // Null
+                        atm.emplace_back("null");
+                        break;
+                    case 'I': // Impulse (Bang)
+                        atm.emplace_back("bang");
+                        break;
+                    default:
+                        break;
+                }
+            }
+            queue.try_emplace(adr, msg->timeTag(), std::move(atm));
+        }
+    }
+    
+    void parse_oscpp(const char* adr, const std::span<uint8_t> data) {
+        OSCPP::Server::Packet packet(data.data(), data.size());
+        std::optional<uint64_t> time;
+        if(packet.isMessage()) {
+            queue.try_emplace(adr, time, parse_packet_to_message(packet));
+        } else if (packet.isBundle()) {
+            OSCPP::Server::Bundle bundle(packet);
+            time = bundle.time();
+            OSCPP::Server::PacketStream packets(bundle.packets());
+            while (!packets.atEnd()) {
+                std::lock_guard<std::mutex> lock{mtx};
+                queue.try_emplace(adr, time, parse_packet_to_message(packets.next()));
+            }
+        } else {
+            cerr << "Packet is neither a message nor a bundle" << endl;
+        }
+    }
+    
     void on_receive(const char* adr, const std::span<uint8_t> data) {
         if (use_raw) {
-            std::lock_guard<std::mutex> lock{mtx};
-            queue.emplace(adr, std::nullopt, to_atoms(data));
+            queue.try_emplace(adr, std::nullopt, to_atoms(data));
         } else {
-            OSCPP::Server::Packet packet(data.data(), data.size());
-            std::optional<uint64_t> time;
-            if(packet.isMessage()) {
-                std::lock_guard<std::mutex> lock{mtx};
-                queue.emplace(adr, time, parse_packet_to_message(packet));
-            } else if (packet.isBundle()) {
-                OSCPP::Server::Bundle bundle(packet);
-                time = bundle.time();
-                OSCPP::Server::PacketStream packets(bundle.packets());
-                while (!packets.atEnd()) {
-                    std::lock_guard<std::mutex> lock{mtx};
-                    queue.emplace(adr, time, parse_packet_to_message(packets.next()));
-                }
-            } else {
-                cerr << "Packet is neither a message nor a bundle" << endl;
-            }
+            parse_oscpkt(adr, data);
         }
     }
     
@@ -223,6 +315,6 @@ public:
 };
 
 //std::set<uint16_t> ht_udpreceive::ports = {};
-std::unordered_map<int, udpreceiver<ht_udpreceive>> ht_udpreceive::receivers = {};
+std::unordered_map<int, udp::receiver<ht_udpreceive>> ht_udpreceive::receivers = {};
 
 MIN_EXTERNAL(ht_udpreceive);

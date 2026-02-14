@@ -9,75 +9,34 @@ using namespace c74::min;
 
 #include <vector>
 #include <string>
+#include <span>
+#include <utility>
 
 #include "oscpp/server.hpp"
 #include "oscpp/client.hpp"
 
+#include "oscpkt.hh"
+#include "ht_min.h"
+
+static_assert(202002L <= __cplusplus, "C++20 or above required");
+
 class ht_OSC : public object<ht_OSC> {
 private:
-    c74::min::atoms decode(const c74::min::atoms& packet) {    // binary to list
-        std::vector<uint8_t> p;
-        p.reserve(packet.size());
+    inline void decode(const c74::min::atoms& packet) {    // binary to list        
+        const auto msgs = ht::min::osc::packet::to_atoms(packet, err_check_atr);
         
-        constexpr auto min = std::numeric_limits<uint8_t>::min();
-        constexpr auto max = std::numeric_limits<uint8_t>::max();
-        
-        for(const auto& byte : packet) {
-            const int val = static_cast<int>(byte);
-            if(max < val) {
-                p.emplace_back(max);
-            } else if (val < min) {
-                p.emplace_back(min);
-            } else {
-                p.emplace_back(val);
-            }
+        for(const auto& msg : msgs) {
+            timetag_out.send(msg.timetag);
+            message_out.send(msg.atoms);
         }
-        
-        OSCPP::Server::Message msg (OSCPP::Server::Packet(p.data(), p.size()));
-        OSCPP::Server::ArgStream args(msg.args());
-                        
-        atoms atm;
-        atm.emplace_back(msg.address());
-                                
-        while(!args.atEnd()) {
-            const auto tag = args.tag();
-            switch(tag) {
-                case 'i':
-                    atm.emplace_back(args.int32());
-                    break;
-                case 'f':
-                    atm.emplace_back(args.float32());
-                    break;
-                case 's':
-                    atm.emplace_back(args.string());
-                    break;
-                case 'b':
-                {
-                    const auto blob = args.blob();
-                    const auto size = blob.size();
-                    std::vector<uint8_t> data(size, 0);
-                    std::memcpy(data.data(), blob.data(), size);
-                    atm.emplace_back("OSCBlob");
-                    atm.emplace_back(size);
-                    const auto a = to_atoms(data);
-                    atm.reserve(atm.size() + a.size());
-                    std::copy(a.begin(),a.end(),std::back_inserter(atm));
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-        return atm;
-    }
+    };
     
-    c74::min::atoms encode(const c74::min::atoms& atms) {   // list to binary
-        static std::vector<uint8_t> buffer;
-        buffer.resize(2048);
+    auto encode_oscpp(const c74::min::atoms& atms) {
+        std::vector<uint8_t> buffer(2048);
         OSCPP::Client::Packet packet(buffer.data(), buffer.size());
         
         const auto adr = static_cast<std::string>(atms[0]);
-        const auto& num_args = atms.size() - 1;
+        const auto num_args = atms.size() - 1;
         
         packet.openMessage(adr.c_str(), num_args);
                         
@@ -100,22 +59,25 @@ private:
         
         packet.closeMessage();
         buffer.resize(packet.size());
-                    
         return to_atoms(buffer);
+    }
+        
+    inline void encode(const c74::min::atoms& atms) {   // atoms to binary
+        const auto packet = ht::min::osc::atoms::to_packet(atms, double_atr);
+        message_out.send(to_atoms(packet));
     }
     
     function process = MIN_FUNCTION {
         switch(operation) {
             case operations::encode:
-                output.send(encode(args));
+                encode(args);
                 break;
             case operations::decode:
                 if(args[0].type() == c74::min::message_type::symbol_argument) {
                     cerr << "Decode only supports binaries" << endl;
                     return{};
                 }
-
-                output.send(decode(args));
+                decode(args);
                 break;
             default:
                 break;
@@ -131,12 +93,13 @@ public:
     MIN_RELATED		{"udpreceive, udpsend, ht.udpreceive, ht.udpsend"};
     
     inlet<>  input	{ this, "(list) things to be handled" };
-    outlet<> output	{ this, "(list) outputs atoms or binary" };
+    outlet<thread_check::scheduler, thread_action::fifo> message_out	{ this, "(list) outputs atoms or binary" };
+    outlet<thread_check::scheduler, thread_action::fifo> timetag_out {this, "(int) output timetag in decode mode"};
     
     enum class operations : int {encode, decode, enum_count};
     enum_map operation_range = {"encode", "decode"};
     
-    argument<symbol> operation_arg = {this, "operation", "Operation mode - encode from binary to list or decode list to binary.",
+    argument<symbol> operation_arg {this, "operation", "Operation mode - encode from binary to list or decode list to binary.",
         MIN_ARGUMENT_FUNCTION {
             if (arg == "decode") {
                 operation = operations::decode;
@@ -152,6 +115,16 @@ public:
         }
     };
     
+    attribute<bool> double_atr { this, "double", false,
+        title {"double"},
+        description {"If enabled, floating-point values are handleed as double"}
+    };
+    
+    attribute<bool> err_check_atr {this, "error_check", false,
+        title {"Error check"},
+        description {"Checks if the input is a list of 0-255"}
+    };
+    
     message<threadsafe::yes> list {this, "list", "binary or list", process};
     message<threadsafe::yes> anything {this, "anything", "binary or list", process};
 
@@ -162,7 +135,6 @@ public:
             return {};
         }
     };
-
 };
 
 
