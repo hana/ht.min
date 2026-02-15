@@ -17,8 +17,8 @@ set(CMAKE_CXX_STANDARD 23)
 # message(STATUS "C74_INCLUDES: ${C74_INCLUDES}")
 include_directories( 
     "${C74_INCLUDES}"
-#    ${CMAKE_SOURCE_DIR}/lib/oscpp/include
 #    ${CMAKE_SOURCE_DIR}/lib/oscpkt
+    ${CMAKE_SOURCE_DIR}/lib/ht
 )
 
 
@@ -38,9 +38,11 @@ target_compile_features(${PROJECT_NAME} PUBLIC
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_SOURCE_DIR}/lib/oscpp/include
-    ${CMAKE_SOURCE_DIR}/lib/oscpkt
     ${CMAKE_SOURCE_DIR}/lib/ht
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC
+    libhtmin
 )
 
 include(${C74_MIN_API_DIR}/script/min-posttarget.cmake)

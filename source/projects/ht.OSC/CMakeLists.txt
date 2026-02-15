@@ -3,6 +3,8 @@
 
 cmake_minimum_required(VERSION 3.60)
 
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.5" CACHE STRING "Minimum OS X deployment version")
+
 set(C74_MIN_API_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../min-api)
 include(${C74_MIN_API_DIR}/script/min-pretarget.cmake)
 
@@ -16,9 +18,7 @@ set(CMAKE_CXX_STANDARD 23)
 
 include_directories( 
 	"${C74_INCLUDES}"
-#    ${CMAKE_SOURCE_DIR}/lib/oscpp/include
-#    ${CMAKE_SOURCE_DIR}/lib/oscpkt
-#    ${CMAKE_SOURCE_DIR}/lib/ht
+   ${CMAKE_SOURCE_DIR}/lib/ht
 )
 
 
@@ -34,14 +34,16 @@ add_library(
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC 
-	cxx_std_23
-	cxx_attribute_deprecated	
+    cxx_std_23
+    cxx_attribute_deprecated	
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-	${CMAKE_SOURCE_DIR}/lib/oscpp/include
-    ${CMAKE_SOURCE_DIR}/lib/oscpkt
+target_include_directories(${PROJECT_NAME} PUBLIC    
     ${CMAKE_SOURCE_DIR}/lib/ht
+)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC	
+    libhtmin	
 )
 
 

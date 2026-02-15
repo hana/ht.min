@@ -5,7 +5,7 @@
 #include <span>
 #include <vector>
 
-#include "oscpkt.hh"
+#include "oscpkt/oscpkt.hh"
 
 namespace ht::min {
 
@@ -37,6 +37,7 @@ struct message_t {
 
 using bundle_t = std::vector<message_t>;
 using blob = std::vector<uint8_t>;
+
 
 namespace atoms {
 
@@ -78,7 +79,7 @@ constexpr auto to_message(const std::span<T> atoms, const oscpkt::TimeTag timeta
     oscpkt::Message msg(std::string(atoms[0]), timetag);
     
     const auto atms_size = atoms.size();
-    
+        
     for(auto i = 1; i < atms_size; i++) {
         const auto& arg = atoms[i];
         switch(arg.type()) {
@@ -100,7 +101,7 @@ constexpr auto to_message(const std::span<T> atoms, const oscpkt::TimeTag timeta
                 
                 break;
             case c74::min::message_type::symbol_argument: {
-                if (symbol(arg) == "OSCBlob") {
+                if (std::string(arg) == "OSCBlob") {
                     const auto blob_size = int(atoms[i + 1]);
                     const auto head = i + 2;                    
                     const auto span = std::span{atoms}.subspan(head, blob_size);
@@ -159,10 +160,81 @@ auto to_packet(const c74::min::atoms& atoms, const bool use_double = false) {
 }
 
 } // namespace atoms
+
+namespace message {
+auto to_atoms(const oscpkt::Message* msg) {
+    c74::min::atoms atm;
+    
+    atm.emplace_back(msg->addressPattern());
+    // 型タグの文字列を取得 (例: "ifs" なら Int, Float, String の順)
+    std::string tags = msg->typeTags();
+    
+    // 引数を取り出すためのリーダーを取得
+    oscpkt::Message::ArgReader arg = msg->arg();
+
+    // 型タグを一文字ずつ判定して、適切な型でpopする
+    for (size_t i = 0; i < tags.length(); ++i) {
+        char type = tags[i];
+        
+        switch (type) {
+            case oscpkt::TYPE_TAG_INT32: { // 32bit integer
+                int32_t val;
+                arg.popInt32(val);
+                atm.emplace_back(val);
+                break;
+            }
+            case oscpkt::TYPE_TAG_FLOAT: { // 32bit float
+                float val;
+                arg.popFloat(val);
+                atm.emplace_back(val);
+                break;
+            }
+            case oscpkt::TYPE_TAG_STRING: { // string
+                std::string val;
+                arg.popStr(val);
+                atm.emplace_back(val);
+                break;
+            }
+            case oscpkt::TYPE_TAG_BLOB: { // Blob
+                std::vector<char> blob;
+                arg.popBlob(blob);
+                atm.emplace_back("OSCBlob");
+                atm.emplace_back(blob.size());
+                const auto a = c74::min::to_atoms(blob);
+                atm.reserve(atm.size() + a.size());
+                std::copy(a.begin(),a.end(),std::back_inserter(atm));
+                break;
+            }
+                // --- OSC 1.0/1.1 expanded tag ---
+            case oscpkt::TYPE_TAG_INT64:
+                int64_t val;
+                arg.popInt64(val);
+                atm.emplace_back(int64_t(val));
+                break;
+            case oscpkt::TYPE_TAG_TRUE: // True
+                atm.emplace_back(true);
+                break;
+            case oscpkt::TYPE_TAG_FALSE: // False
+                atm.emplace_back(false);
+                break;
+            case 'N': // Null
+                atm.emplace_back("null");
+                break;
+            case 'I': // Impulse (Bang)
+                atm.emplace_back("bang");
+                break;
+            default:
+                break;
+        }
+    }
+    return atm;
+}
+
+}// namespace message
+
 /*
  packet to atoms
  */
-
 namespace packet {
 template<typename T>
 auto to_atoms(const std::span<T> packet, const bool error_check = false) {
@@ -182,66 +254,7 @@ auto to_atoms(const std::span<T> packet, const bool error_check = false) {
     oscpkt::Message* msg;
     
     while (pr.isOk() && (msg = pr.popMessage()) != nullptr) {
-        c74::min::atoms atm;
-        atm.clear();
-        
-        atm.emplace_back(msg->addressPattern());
-        // 型タグの文字列を取得 (例: "ifs" なら Int, Float, String の順)
-        std::string tags = msg->typeTags();
-        
-        // 引数を取り出すためのリーダーを取得
-        oscpkt::Message::ArgReader arg = msg->arg();
-        
-        // 型タグを一文字ずつ判定して、適切な型でpopする
-        for (size_t i = 0; i < tags.length(); ++i) {
-            char type = tags[i];
-            
-            switch (type) {
-                case 'i': { // 32bit integer
-                    int32_t val;
-                    arg.popInt32(val);
-                    atm.emplace_back(val);
-                    break;
-                }
-                case 'f': { // 32bit float
-                    float val;
-                    arg.popFloat(val);
-                    atm.emplace_back(val);
-                    break;
-                }
-                case 's': { // string
-                    std::string val;
-                    arg.popStr(val);
-                    atm.emplace_back(val);
-                    break;
-                }
-                case 'b': { // Blob
-                    std::vector<char> blob;
-                    arg.popBlob(blob);
-                    atm.emplace_back("OSCBlob");
-                    atm.emplace_back(blob.size());
-                    const auto a = c74::min::to_atoms(blob);
-                    atm.reserve(atm.size() + a.size());
-                    std::copy(a.begin(),a.end(),std::back_inserter(atm));
-                    break;
-                }
-                    // --- OSC 1.0/1.1 expanded tag ---
-                case 'T': // True
-                    atm.emplace_back(true);
-                    break;
-                case 'F': // False
-                    atm.emplace_back(false);
-                    break;
-                case 'N': // Null
-                    atm.emplace_back("null");
-                    break;
-                case 'I': // Impulse (Bang)
-                    atm.emplace_back("bang");
-                    break;
-                default:
-                    break;
-            }
-        }
+        c74::min::atoms atm = message::to_atoms(msg);
         message_t result {
             .timetag = msg->timeTag(),
             .atoms = std::move(atm)
@@ -256,5 +269,7 @@ auto to_atoms(const c74::min::atoms& packet, const bool error_check = false) {
     return to_atoms(std::span{packet}, error_check);
 }
 }   // namespace packet
+
+
 }   // namespace osc
 }   // namespace ht::min

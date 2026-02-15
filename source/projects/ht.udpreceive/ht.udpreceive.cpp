@@ -29,10 +29,9 @@
 #include <queue>
 #include <mutex>
 
-#include "oscpp/server.hpp"
 #include "udpreceiver.hpp"
 
-#include "oscpkt.hh"
+#include "ht_min.h"
 
 using namespace c74::min;
 
@@ -167,47 +166,7 @@ public:
         }
     };
     
-    atoms parse_packet_to_message(const OSCPP::Server::Packet& packet) {
-        OSCPP::Server::Message msg(packet);
-                                                    
-        OSCPP::Server::ArgStream args(msg.args());
-
-        atoms atms;
-        atms.emplace_back(msg.address());
-        
-        while(!args.atEnd()) {
-            const auto tag = args.tag();
-            switch(tag) {
-                case 'i':
-                    atms.emplace_back(args.int32());
-                    break;
-                case 'f':
-                    atms.emplace_back(args.float32());
-                    break;
-                case 's':
-                    atms.emplace_back(args.string());
-                    break;
-                case 'b':
-                {
-                    const auto blob = args.blob();
-                    const auto size = blob.size();
-                    std::vector<uint8_t> data(size, 0);
-                    std::memcpy(data.data(), blob.data(), size);
-                    atms.emplace_back("OSCBlob");
-                    atms.emplace_back(size);
-                    const auto a = to_atoms(data);
-                    atms.reserve(atms.size() + a.size());
-                    std::copy(a.begin(),a.end(),std::back_inserter(atms));
-                    break;
-                }
-                default:
-                    break;
-            }
-        }
-        return atms;
-    }
-    
-    void parse_oscpkt(const char* adr, const std::span<uint8_t> data) {
+    void parse(const char* adr, const std::span<uint8_t> data) {
         oscpkt::PacketReader pr(data.data(), data.size());
         
         if (!pr.isOk()) {
@@ -218,85 +177,8 @@ public:
         oscpkt::Message* msg;
         
         while (pr.isOk() && (msg = pr.popMessage()) != nullptr) {
-            atoms atm;
-            atm.clear();
-            
-            atm.emplace_back(msg->addressPattern());
-            // 型タグの文字列を取得 (例: "ifs" なら Int, Float, String の順)
-            std::string tags = msg->typeTags();
-            
-            // 引数を取り出すためのリーダーを取得
-            oscpkt::Message::ArgReader arg = msg->arg();
-
-            // 型タグを一文字ずつ判定して、適切な型でpopする
-            for (size_t i = 0; i < tags.length(); ++i) {
-                char type = tags[i];
-
-                switch (type) {
-                    case 'i': { // 32bit integer
-                        int32_t val;
-                        arg.popInt32(val);
-                        atm.emplace_back(val);
-                        break;
-                    }
-                    case 'f': { // 32bit float
-                        float val;
-                        arg.popFloat(val);
-                        atm.emplace_back(val);
-                        break;
-                    }
-                    case 's': { // string
-                        std::string val;
-                        arg.popStr(val);
-                        atm.emplace_back(val);
-                        break;
-                    }
-                    case 'b': { // Blob
-                        std::vector<char> blob;
-                        arg.popBlob(blob);
-                        atm.emplace_back("OSCBlob");
-                        atm.emplace_back(blob.size());
-                        const auto a = to_atoms(blob);
-                        atm.reserve(atm.size() + a.size());
-                        std::copy(a.begin(),a.end(),std::back_inserter(atm));
-                        break;
-                    }
-                    // --- OSC 1.0/1.1 expanded tag ---
-                    case 'T': // True
-                        atm.emplace_back(true);
-                        break;
-                    case 'F': // False
-                        atm.emplace_back(false);
-                        break;
-                    case 'N': // Null
-                        atm.emplace_back("null");
-                        break;
-                    case 'I': // Impulse (Bang)
-                        atm.emplace_back("bang");
-                        break;
-                    default:
-                        break;
-                }
-            }
+            auto atm = ht::min::osc::message::to_atoms(msg);                    
             queue.try_emplace(adr, msg->timeTag(), std::move(atm));
-        }
-    }
-    
-    void parse_oscpp(const char* adr, const std::span<uint8_t> data) {
-        OSCPP::Server::Packet packet(data.data(), data.size());
-        std::optional<uint64_t> time;
-        if(packet.isMessage()) {
-            queue.try_emplace(adr, time, parse_packet_to_message(packet));
-        } else if (packet.isBundle()) {
-            OSCPP::Server::Bundle bundle(packet);
-            time = bundle.time();
-            OSCPP::Server::PacketStream packets(bundle.packets());
-            while (!packets.atEnd()) {
-                std::lock_guard<std::mutex> lock{mtx};
-                queue.try_emplace(adr, time, parse_packet_to_message(packets.next()));
-            }
-        } else {
-            cerr << "Packet is neither a message nor a bundle" << endl;
         }
     }
     
@@ -304,7 +186,7 @@ public:
         if (use_raw) {
             queue.try_emplace(adr, std::nullopt, to_atoms(data));
         } else {
-            parse_oscpkt(adr, data);
+            parse(adr, data);
         }
     }
     

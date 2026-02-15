@@ -12,10 +12,7 @@ using namespace c74::min;
 #include <span>
 #include <utility>
 
-#include "oscpp/server.hpp"
-#include "oscpp/client.hpp"
 
-#include "oscpkt.hh"
 #include "ht_min.h"
 
 static_assert(202002L <= __cplusplus, "C++20 or above required");
@@ -30,38 +27,7 @@ private:
             message_out.send(msg.atoms);
         }
     };
-    
-    auto encode_oscpp(const c74::min::atoms& atms) {
-        std::vector<uint8_t> buffer(2048);
-        OSCPP::Client::Packet packet(buffer.data(), buffer.size());
-        
-        const auto adr = static_cast<std::string>(atms[0]);
-        const auto num_args = atms.size() - 1;
-        
-        packet.openMessage(adr.c_str(), num_args);
-                        
-        for(auto i = 1; i < atms.size(); i++) {
-            const auto& arg = atms[i];
-            switch(arg.type()) {
-                case c74::min::message_type::int_argument:
-                    packet.int32(arg);
-                    break;
-                case c74::min::message_type::float_argument:
-                    packet.float32(arg);
-                    break;
-                case c74::min::message_type::symbol_argument:
-                    packet.string(static_cast<std::string>(arg).c_str());
-                    break;
-                default:
-                    break;
-            }
-        }
-        
-        packet.closeMessage();
-        buffer.resize(packet.size());
-        return to_atoms(buffer);
-    }
-        
+            
     inline void encode(const c74::min::atoms& atms) {   // atoms to binary
         const auto packet = ht::min::osc::atoms::to_packet(atms, double_atr);
         message_out.send(to_atoms(packet));

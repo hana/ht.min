@@ -57,8 +57,8 @@
 		</attribute>
 
 		<attribute name='error_check' get='1' set='1' type='long' size='1' >
-			<digest>Error check </digest>
-			<description>Error check </description>
+			<digest>Checks if the input is a list of 0-255 </digest>
+			<description>Checks if the input is a list of 0-255 </description>
 		</attribute>
 
 		<attribute name='operation' get='1' set='1' type='long' size='1' >
